@@ -32,7 +32,7 @@ abstract class WarningsReport: DefaultTask() {
 
         val groups = parser.messages.groupBy { "${it.type}/${it.category}" }
 
-        reportDir!!.get().file("report.html").asFile.writer().use {
+        reportDir!!.get().file("index.html").asFile.writer().use {
             it.appendLine("<!DOCTYPE html>")
             it.appendHTML().html {
                 head {

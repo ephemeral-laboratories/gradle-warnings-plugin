@@ -52,7 +52,7 @@ class GradleWarningsPluginFunctionalTest {
 
         assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
-        val report = projectDir.resolve("build/reports/warnings/report.html").readText()
+        val report = projectDir.resolve("build/reports/warnings/index.html").readText()
         assertThat(report).all {
             contains("<p>Total warnings: <strong>2</strong></p>")
             contains("<td><a href=\"#warning/rawtypes\">warning/rawtypes</a></td>")
