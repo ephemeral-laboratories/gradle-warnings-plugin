@@ -1,2 +1,3 @@
 rootProject.name = "gradle-warnings-plugin"
-include("plugin")
+include(":gradle-warnings-plugin")
+project(":gradle-warnings-plugin").projectDir = file("plugin")
