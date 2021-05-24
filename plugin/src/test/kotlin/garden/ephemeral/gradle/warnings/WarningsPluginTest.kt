@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 /**
  * A simple unit test for the 'garden.ephemeral.gradle.warnings.greeting' plugin.
  */
-class GradleWarningsPluginTest {
+class WarningsPluginTest {
 
     @Test
     fun `plugin extends compile task`() {

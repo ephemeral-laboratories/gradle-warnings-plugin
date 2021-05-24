@@ -28,7 +28,7 @@ dependencies {
 gradlePlugin {
     val warnings by plugins.creating {
         id = "garden.ephemeral.warnings"
-        implementationClass = "garden.ephemeral.gradle.warnings.GradleWarningsPlugin"
+        implementationClass = "garden.ephemeral.gradle.warnings.WarningsPlugin"
     }
 }
 

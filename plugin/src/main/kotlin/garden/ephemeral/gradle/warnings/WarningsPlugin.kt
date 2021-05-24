@@ -14,7 +14,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 /**
  * Main entry point for the Gradle warnings plugin.
  */
-class GradleWarningsPlugin: Plugin<Project> {
+class WarningsPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply(ReportingBasePlugin::class.java)
 

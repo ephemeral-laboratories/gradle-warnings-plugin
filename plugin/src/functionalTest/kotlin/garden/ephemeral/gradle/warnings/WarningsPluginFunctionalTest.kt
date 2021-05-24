@@ -16,7 +16,7 @@ import java.io.File
 /**
  * A simple functional test for the 'garden.ephemeral.gradle.warnings.greeting' plugin.
  */
-class GradleWarningsPluginFunctionalTest {
+class WarningsPluginFunctionalTest {
 
     @TempDir
     lateinit var projectDir: File
