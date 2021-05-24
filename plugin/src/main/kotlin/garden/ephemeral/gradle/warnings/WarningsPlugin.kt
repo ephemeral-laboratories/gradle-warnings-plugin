@@ -36,10 +36,11 @@ class WarningsPlugin: Plugin<Project> {
         project.tasks.register("warningsReport", WarningsReport::class.java) { task ->
             task.dependsOn(compileTasks)
 
-            task.warningDumps!!.setFrom(warningDumps)
+            task.warningDumps.setFrom(warningDumps)
 
             val reportingExtension = project.extensions.getByName(ReportingExtension.NAME) as ReportingExtension
-            task.reportDir!!.set(reportingExtension.baseDirectory.dir("warnings"))
+            task.reports.html.outputLocation.set(reportingExtension.baseDirectory.dir("warnings"))
+            task.reports.html.required.set(true)
         }
     }
 }

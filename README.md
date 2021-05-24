@@ -41,7 +41,18 @@ Customising the report location:
 
 ```kotlin
 tasks.warningsReport {
-    // Default report location
-    reportDir.set(layout.buildDirectory.dir("reports/warnings"))
+    reports {
+        html.outputLocation.set(file("$buildDir/custom"))
+    }
+}
+```
+
+Disabling the report:
+
+```kotlin
+tasks.warningsReport {
+    reports {
+        html.required.set(false)
+    }
 }
 ```

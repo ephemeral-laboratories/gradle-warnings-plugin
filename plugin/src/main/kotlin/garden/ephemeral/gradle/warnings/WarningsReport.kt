@@ -4,35 +4,61 @@ import garden.ephemeral.gradle.warnings.internal.CompilerMessage
 import garden.ephemeral.gradle.warnings.internal.WarningsParser
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.reflect.Instantiator
 import java.io.File
+import javax.inject.Inject
 
 
 abstract class WarningsReport: DefaultTask() {
 
-    abstract val warningDumps: ConfigurableFileCollection?
-        @InputFiles
-        get
+    @get:InputFiles
+    abstract val warningDumps: ConfigurableFileCollection
 
-    abstract val reportDir: DirectoryProperty?
-        @OutputDirectory
-        get
+    @get:Inject
+    protected abstract val instantiator: Instantiator
+
+    @get:Inject
+    protected abstract val callbackActionDecorator: CollectionCallbackActionDecorator
+
+    @get:Nested
+    val reports: WarningsReportsContainer by lazy {
+        instantiator.newInstance(DefaultWarningsReportsContainer::class.java, this, callbackActionDecorator)
+    }
+
+    open fun reports(configureAction: Action<in WarningsReportsContainer>): WarningsReportsContainer {
+        configureAction.execute(reports)
+        return reports
+    }
 
     @TaskAction
     fun generateReport() {
         val parser = WarningsParser()
-        warningDumps!!.files
+        warningDumps.files
             .filter(File::exists)
             .forEach(parser::parse)
 
         val groups = parser.messages.groupBy { "${it.type}/${it.category}" }
+        if (reports.html.required.get()) {
+            generateHtmlReport(groups, parser)
+        }
+    }
 
-        reportDir!!.get().file("index.html").asFile.writer().use {
+    private fun generateHtmlReport(
+        groups: Map<String, List<CompilerMessage>>,
+        parser: WarningsParser
+    ) {
+        val htmlDir = reports.html.outputLocation.get()
+        project.mkdir(htmlDir.asFile)
+
+        val indexFile = reports.html.entryPoint
+        indexFile.writer().use {
             it.appendLine("<!DOCTYPE html>")
             it.appendHTML().html {
                 head {

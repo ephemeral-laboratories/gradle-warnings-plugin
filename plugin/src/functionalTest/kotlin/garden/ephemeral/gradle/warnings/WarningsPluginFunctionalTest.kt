@@ -6,6 +6,7 @@ package garden.ephemeral.gradle.warnings
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.contains
+import assertk.assertions.exists
 import assertk.assertions.isEqualTo
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -59,5 +60,76 @@ class WarningsPluginFunctionalTest {
             contains("<table id=\"warning/rawtypes\">")
             contains("<td>src/main/java/Blah.java:4</td>")
         }
+    }
+
+    @Test
+    fun `report can be disabled`() {
+        projectDir.resolve("settings.gradle").writeText("")
+        projectDir.resolve("build.gradle").writeText("""
+            plugins {
+                id('java')
+                id('garden.ephemeral.warnings')
+            }
+            tasks.compileJava {
+                options.compilerArgs << '-Xlint'
+            }
+            tasks.warningsReport {
+                reports {
+                    html.required.set(false)
+                }
+            }
+        """)
+
+        projectDir.resolve("src/main/java").mkdirs()
+        projectDir.resolve("src/main/java/Blah.java").writeText("""
+            public class Blah {
+            }
+        """.trimIndent())
+
+        val result = GradleRunner.create()
+            // Useful for diagnosing issues:
+            //.forwardOutput()
+            .withPluginClasspath()
+            .withArguments("warningsReport")
+            .withProjectDir(projectDir)
+            .build()
+
+        assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    fun `location of report can be configured`() {
+        projectDir.resolve("settings.gradle").writeText("")
+        projectDir.resolve("build.gradle").writeText("""
+            plugins {
+                id('java')
+                id('garden.ephemeral.warnings')
+            }
+            tasks.compileJava {
+                options.compilerArgs << '-Xlint'
+            }
+            tasks.warningsReport {
+                reports {
+                    html.outputLocation.set(file("${'$'}buildDir/custom"))
+                }
+            }
+        """)
+        projectDir.resolve("src/main/java").mkdirs()
+        projectDir.resolve("src/main/java/Blah.java").writeText("""
+            public class Blah {
+            }
+        """.trimIndent())
+
+        val result = GradleRunner.create()
+            // Useful for diagnosing issues:
+            //.forwardOutput()
+            .withPluginClasspath()
+            .withArguments("warningsReport")
+            .withProjectDir(projectDir)
+            .build()
+
+        assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        assertThat(projectDir.resolve("build/custom/index.html")).exists()
     }
 }
