@@ -4,9 +4,12 @@
 package garden.ephemeral.gradle.warnings
 
 import assertk.assertThat
+import assertk.assertions.endsWith
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
+import java.io.File
 
 /**
  * A simple unit test for the 'garden.ephemeral.gradle.warnings.greeting' plugin.
@@ -14,13 +17,31 @@ import org.junit.jupiter.api.Test
 class WarningsPluginTest {
 
     @Test
-    fun `plugin extends compile task`() {
+    fun `plugin adds warnings extension to compile task`() {
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("java")
         project.plugins.apply("garden.ephemeral.warnings")
 
-        assertThat(project.tasks.getByName("compileJava")
-            .extensions.findByName("warnings")).isNotNull()
+        val extension = project.tasks.getByName("compileJava")
+            .extensions.findByName("warnings")
+
+        // https://github.com/willowtreeapps/assertk/issues/393
+        assertThat(extension).isNotNull()
+        assertThat(extension!!).isInstanceOf(WarningsOptionsExtension::class.java)
+    }
+
+    @Test
+    fun `plugin sets default warning dump location`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("java")
+        project.plugins.apply("garden.ephemeral.warnings")
+
+        val extension = project.tasks.getByName("compileJava")
+            .extensions.findByName("warnings")
+        val warningDump = (extension as WarningsOptionsExtension).warningDump.get().asFile
+        val warningDumpPath = warningDump.path.replace(File.separatorChar, '/')
+
+        assertThat(warningDumpPath).endsWith("/build/compileJava.stderr")
     }
 
     @Test
@@ -28,6 +49,21 @@ class WarningsPluginTest {
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("garden.ephemeral.warnings")
 
-        assertThat(project.tasks.findByName("warningsReport")).isNotNull()
+        val task = project.tasks.findByName("warningsReport")
+
+        assertThat(task).isNotNull()
+        assertThat(task!!).isInstanceOf(WarningsReport::class.java)
+    }
+
+    @Test
+    fun `plugin sets default warning report location`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("garden.ephemeral.warnings")
+
+        val task = project.tasks.findByName("warningsReport")
+        val htmlOutput = (task as WarningsReport).reports.html.outputLocation.get().asFile
+        val htmlOutputPath = htmlOutput.path.replace(File.separatorChar, '/')
+
+        assertThat(htmlOutputPath).endsWith("/build/reports/warnings")
     }
 }
