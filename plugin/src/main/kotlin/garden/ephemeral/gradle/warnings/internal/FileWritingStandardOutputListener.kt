@@ -1,4 +1,4 @@
-package garden.ephemeral.gradle.warnings
+package garden.ephemeral.gradle.warnings.internal
 
 import org.gradle.api.file.RegularFile
 import org.gradle.api.logging.StandardOutputListener
@@ -15,7 +15,9 @@ class FileWritingStandardOutputListener(
     }
 
     override fun onOutput(output: CharSequence?) {
-        writer.write(output as String)
+        if (output != null) {
+            writer.append(output)
+        }
     }
 
     override fun close() {
