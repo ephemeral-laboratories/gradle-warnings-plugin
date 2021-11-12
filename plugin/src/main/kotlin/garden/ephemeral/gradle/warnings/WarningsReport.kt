@@ -1,9 +1,6 @@
 package garden.ephemeral.gradle.warnings
 
-import garden.ephemeral.gradle.warnings.internal.CsvReportGenerator
-import garden.ephemeral.gradle.warnings.internal.DefaultWarningsReportContainer
-import garden.ephemeral.gradle.warnings.internal.HtmlReportGenerator
-import garden.ephemeral.gradle.warnings.internal.WarningsParser
+import garden.ephemeral.gradle.warnings.internal.*
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -66,6 +63,9 @@ abstract class WarningsReport: DefaultTask() {
         }
         if (reports.csv.required.get()) {
             CsvReportGenerator(project).generateReport(reports.csv, model)
+        }
+        if (reports.json.required.get()) {
+            JsonReportGenerator(project).generateReport(reports.json, model)
         }
     }
 }

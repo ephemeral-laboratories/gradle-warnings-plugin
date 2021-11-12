@@ -86,4 +86,16 @@ class WarningsPluginTest {
 
         assertThat(csvOutputPath).endsWith("/build/reports/warnings/warnings.csv")
     }
+
+    @Test
+    fun `plugin sets default JSON report location`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("garden.ephemeral.warnings")
+
+        val task = project.tasks.findByName("warningsReport") as WarningsReport
+        val jsonOutput = task.reports.json.destination
+        val jsonOutputPath = jsonOutput.path.replace(File.separatorChar, '/')
+
+        assertThat(jsonOutputPath).endsWith("/build/reports/warnings/warnings.json")
+    }
 }

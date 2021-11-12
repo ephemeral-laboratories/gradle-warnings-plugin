@@ -123,6 +123,26 @@ class WarningsPluginFunctionalTest {
         assertThat(projectDir.resolve("build/custom.csv")).isFile()
     }
 
+    @Test
+    fun `location of JSON report can be configured`() {
+        writeEmptySettingsScript()
+        writeBuildScript("""
+            tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
+                reports {
+                    json.required.set(true)
+                    json.outputLocation.set(file("${"$"}buildDir/custom.json"))
+                }
+            }
+        """.trimIndent())
+        writeEmptyClass()
+
+        val result = runTask()
+
+        assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        assertThat(projectDir.resolve("build/custom.json")).isFile()
+    }
+
     private fun writeEmptySettingsScript() = writeFile("settings.gradle.kts", "")
 
     private fun writeBuildScript(extra: String = "") = writeFile("build.gradle.kts", """

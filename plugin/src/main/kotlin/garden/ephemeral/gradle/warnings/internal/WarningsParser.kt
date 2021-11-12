@@ -3,7 +3,7 @@ package garden.ephemeral.gradle.warnings.internal
 import java.io.File
 
 class WarningsParser {
-    val messages = mutableListOf<CompilerMessage>();
+    val messages = mutableListOf<CompilerMessage>()
 
     private var currentMessageBuilder: CompilerMessage.Builder? = null
 
@@ -33,12 +33,12 @@ class WarningsParser {
     private fun addCurrentMessage() {
         if (currentMessageBuilder != null) {
             messages.add(currentMessageBuilder!!.build())
-            currentMessageBuilder = null;
+            currentMessageBuilder = null
         }
     }
 
     fun createReportModel(): ReportModel {
         val groups = messages.groupBy { "${it.type}/${it.category}" }
-        return ReportModel(groups, messages.size)
+        return ReportModel(messages.size, groups)
     }
 }

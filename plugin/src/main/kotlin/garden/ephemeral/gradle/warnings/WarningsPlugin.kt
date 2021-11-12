@@ -55,6 +55,7 @@ class WarningsPlugin: Plugin<Project> {
             val reportingExtension = project.extensions.getByName(ReportingExtension.NAME) as ReportingExtension
             task.reports.html.outputLocation.set(reportingExtension.baseDirectory.dir("warnings"))
             task.reports.csv.outputLocation.set(reportingExtension.baseDirectory.file("warnings/warnings.csv"))
+            task.reports.json.outputLocation.set(reportingExtension.baseDirectory.file("warnings/warnings.json"))
         }
     }
 }

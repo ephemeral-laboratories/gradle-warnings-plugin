@@ -20,8 +20,12 @@ open class DefaultWarningsReportContainer(task: Task, callbackActionDecorator: C
     override val csv: SingleFileReport
         get() = getByName("csv") as SingleFileReport
 
+    override val json: SingleFileReport
+        get() = getByName("json") as SingleFileReport
+
     init {
         super.add(TaskGeneratedSingleDirectoryReport::class.java, "html", task, "index.html")
         super.add(TaskGeneratedSingleFileReport::class.java, "csv", task)
+        super.add(TaskGeneratedSingleFileReport::class.java, "json", task)
     }
 }

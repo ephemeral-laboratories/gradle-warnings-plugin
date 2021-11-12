@@ -22,4 +22,10 @@ interface WarningsReportContainer : ReportContainer<ConfigurableReport?> {
      */
     @get:Nested
     val csv: SingleFileReport
+
+    /**
+     * The JSON report.
+     */
+    @get:Nested
+    val json: SingleFileReport
 }

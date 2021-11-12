@@ -14,11 +14,12 @@ class HtmlReportGeneratorTest {
     @Test
     fun `renders warning table`() {
         val model = ReportModel(
+            1,
             mapOf(
                 "rawtypes" to listOf(
                     CompilerMessage("src/Blah.java", "4", "warning", "rawtypes", "You broke it")
                 )
-            ), 1
+            )
         )
         val reportDir = generateReport(model)
         val html = reportDir.resolve("index.html").readText()
@@ -39,7 +40,7 @@ class HtmlReportGeneratorTest {
 
     @Test
     fun `renders a different message when there are no warnings`() {
-        val model = ReportModel(mapOf(), 0)
+        val model = ReportModel(0, mapOf())
         val reportDir = generateReport(model)
         val html = reportDir.resolve("index.html").readText()
         assertThat(html).contains("<p>No warnings!</p>")
@@ -48,11 +49,12 @@ class HtmlReportGeneratorTest {
     @Test
     fun `escapes special characters`() {
         val model = ReportModel(
+            1,
             mapOf(
                 "rawtypes" to listOf(
                     CompilerMessage("src/Blah.java", "4", "warning", "rawtypes", "Thunderbolt & Lightning")
                 )
-            ), 1
+            )
         )
         val reportDir = generateReport(model)
         val html = reportDir.resolve("index.html").readText()
