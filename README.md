@@ -56,6 +56,17 @@ tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
 }
 ```
 
+Enabling CSV or JSON reports:
+
+```kotlin
+tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
+    reports {
+        csv.required.set(true)
+        json.required.set(true)
+    }
+}
+```
+
 Disabling the report:
 
 ```kotlin
