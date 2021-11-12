@@ -13,6 +13,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.nio.file.Files
 
 /**
  * A simple functional test for the 'garden.ephemeral.gradle.warnings.greeting' plugin.
@@ -24,18 +25,9 @@ class WarningsPluginFunctionalTest {
 
     @Test
     fun `task runs and produces the expected report`() {
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('java')
-                id('garden.ephemeral.warnings')
-            }
-            tasks.compileJava {
-                options.compilerArgs << '-Xlint'
-            }
-        """)
-        projectDir.resolve("src/main/java").mkdirs()
-        projectDir.resolve("src/main/java/Blah.java").writeText("""
+        writeEmptySettingsScript()
+        writeBuildScript()
+        writeFile("src/main/java/Blah.java", """
             import java.util.ArrayList;
             import java.util.List;
             public class Blah {
@@ -43,13 +35,7 @@ class WarningsPluginFunctionalTest {
             }
         """.trimIndent())
 
-        val result = GradleRunner.create()
-            // Useful for diagnosing issues:
-            //.forwardOutput()
-            .withPluginClasspath()
-            .withArguments("warningsReport")
-            .withProjectDir(projectDir)
-            .build()
+        val result = runTask()
 
         assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -63,73 +49,88 @@ class WarningsPluginFunctionalTest {
     }
 
     @Test
+    fun `dump file location can be configured`() {
+        writeEmptySettingsScript()
+        writeBuildScript("""
+            tasks.named<JavaCompile>("compileJava") {
+                extensions.configure<garden.ephemeral.gradle.warnings.WarningsOptionsExtension> {
+                    warningDump.set(file("${"$"}buildDir/newLocation.log"))
+                }
+            }
+        """.trimIndent())
+        writeEmptyClass()
+
+        val result = runTask()
+
+        assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(projectDir.resolve("build/newLocation.log")).exists()
+    }
+
+    @Test
     fun `report can be disabled`() {
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('java')
-                id('garden.ephemeral.warnings')
-            }
-            tasks.compileJava {
-                options.compilerArgs << '-Xlint'
-            }
-            tasks.warningsReport {
+        writeEmptySettingsScript()
+        writeBuildScript("""
+            tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
                 reports {
                     html.required.set(false)
                 }
             }
-        """)
-
-        projectDir.resolve("src/main/java").mkdirs()
-        projectDir.resolve("src/main/java/Blah.java").writeText("""
-            public class Blah {
-            }
         """.trimIndent())
+        writeEmptyClass()
 
-        val result = GradleRunner.create()
-            // Useful for diagnosing issues:
-            //.forwardOutput()
-            .withPluginClasspath()
-            .withArguments("warningsReport")
-            .withProjectDir(projectDir)
-            .build()
+        val result = runTask()
 
         assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
     }
 
     @Test
     fun `location of report can be configured`() {
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('java')
-                id('garden.ephemeral.warnings')
-            }
-            tasks.compileJava {
-                options.compilerArgs << '-Xlint'
-            }
-            tasks.warningsReport {
+        writeEmptySettingsScript()
+        writeBuildScript("""
+            tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
                 reports {
-                    html.outputLocation.set(file("${'$'}buildDir/custom"))
+                    html.outputLocation.set(file("${"$"}buildDir/custom"))
                 }
             }
-        """)
-        projectDir.resolve("src/main/java").mkdirs()
-        projectDir.resolve("src/main/java/Blah.java").writeText("""
-            public class Blah {
-            }
         """.trimIndent())
+        writeEmptyClass()
 
-        val result = GradleRunner.create()
-            // Useful for diagnosing issues:
-            //.forwardOutput()
-            .withPluginClasspath()
-            .withArguments("warningsReport")
-            .withProjectDir(projectDir)
-            .build()
+        val result = runTask()
 
         assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         assertThat(projectDir.resolve("build/custom/index.html")).exists()
+    }
+
+    private fun writeEmptySettingsScript() = writeFile("settings.gradle.kts", "")
+
+    private fun writeBuildScript(extra: String = "") = writeFile("build.gradle.kts", """
+        plugins {
+            id("java")
+            id("garden.ephemeral.warnings")
+        }
+        tasks.named<JavaCompile>("compileJava") {
+            options.compilerArgs.add("-Xlint")
+        }
+    """.trimIndent() + "\n" + extra)
+
+    private fun runTask() = GradleRunner.create()
+        // Useful for diagnosing issues:
+        //.forwardOutput()
+        .withPluginClasspath()
+        .withArguments("warningsReport", "--stacktrace")
+        .withProjectDir(projectDir)
+        .build()
+
+    private fun writeEmptyClass() = writeFile("src/main/java/Blah.java", """
+        public class Blah {
+        }
+    """.trimIndent())
+
+    private fun writeFile(relativePath: String, text: String) {
+        val file = projectDir.resolve(relativePath)
+        val parentDir = file.parentFile
+        Files.createDirectories(parentDir.toPath())
+        file.writeText(text)
     }
 }

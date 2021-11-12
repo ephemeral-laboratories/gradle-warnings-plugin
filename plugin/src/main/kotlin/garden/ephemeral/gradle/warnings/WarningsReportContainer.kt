@@ -8,11 +8,10 @@ import org.gradle.api.tasks.Nested
 /**
  * The reporting configuration for the [WarningsReport] task.
  */
-interface WarningsReportsContainer : ReportContainer<ConfigurableReport?> {
+interface WarningsReportContainer : ReportContainer<ConfigurableReport?> {
+
     /**
-     * The HTML report
-     *
-     * @return The HTML report
+     * The HTML report.
      */
     @get:Nested
     val html: DirectoryReport
