@@ -3,13 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.4.31"
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
-    }
-}
-
 group = "garden.ephemeral.gradle.warnings"
 version = "0.1.0"
 
