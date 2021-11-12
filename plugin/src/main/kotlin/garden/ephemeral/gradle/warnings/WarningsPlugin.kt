@@ -7,8 +7,10 @@ import garden.ephemeral.gradle.warnings.internal.FileWritingStandardOutputListen
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.lambdas.SerializableLambdas.action
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.provider.Provider
+import org.gradle.api.reporting.ConfigurableReport
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.internal.instantiation.generator.ManagedObjectFactory
@@ -46,9 +48,13 @@ class WarningsPlugin: Plugin<Project> {
 
             task.warningDumps.setFrom(warningDumps)
 
+            task.reports.all(action { report: ConfigurableReport? ->
+                report?.required?.set(report.name == "html")
+            })
+
             val reportingExtension = project.extensions.getByName(ReportingExtension.NAME) as ReportingExtension
             task.reports.html.outputLocation.set(reportingExtension.baseDirectory.dir("warnings"))
-            task.reports.html.required.set(true)
+            task.reports.csv.outputLocation.set(reportingExtension.baseDirectory.file("warnings/warnings.csv"))
         }
     }
 }

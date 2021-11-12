@@ -4,9 +4,7 @@
 package garden.ephemeral.gradle.warnings
 
 import assertk.assertThat
-import assertk.assertions.endsWith
-import assertk.assertions.isInstanceOf
-import assertk.assertions.isNotNull
+import assertk.assertions.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -56,14 +54,36 @@ class WarningsPluginTest {
     }
 
     @Test
-    fun `plugin sets default warning report location`() {
+    fun `plugin enables only HTML by default`() {
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("garden.ephemeral.warnings")
 
-        val task = project.tasks.findByName("warningsReport")
-        val htmlOutput = (task as WarningsReport).reports.html.outputLocation.get().asFile
+        val task = project.tasks.findByName("warningsReport") as WarningsReport
+        assertThat(task.reports.html.required.get()).isEqualTo(true)
+        assertThat(task.reports.enabledReports).hasSize(1)
+    }
+
+    @Test
+    fun `plugin sets default HTML report location`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("garden.ephemeral.warnings")
+
+        val task = project.tasks.findByName("warningsReport") as WarningsReport
+        val htmlOutput = task.reports.html.destination
         val htmlOutputPath = htmlOutput.path.replace(File.separatorChar, '/')
 
         assertThat(htmlOutputPath).endsWith("/build/reports/warnings")
+    }
+
+    @Test
+    fun `plugin sets default CSV report location`() {
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("garden.ephemeral.warnings")
+
+        val task = project.tasks.findByName("warningsReport") as WarningsReport
+        val csvOutput = task.reports.csv.destination
+        val csvOutputPath = csvOutput.path.replace(File.separatorChar, '/')
+
+        assertThat(csvOutputPath).endsWith("/build/reports/warnings/warnings.csv")
     }
 }

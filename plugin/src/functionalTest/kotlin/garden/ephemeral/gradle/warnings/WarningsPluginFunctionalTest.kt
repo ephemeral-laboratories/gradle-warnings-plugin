@@ -8,6 +8,7 @@ import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.exists
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
@@ -84,7 +85,7 @@ class WarningsPluginFunctionalTest {
     }
 
     @Test
-    fun `location of report can be configured`() {
+    fun `location of HTML report can be configured`() {
         writeEmptySettingsScript()
         writeBuildScript("""
             tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
@@ -99,7 +100,27 @@ class WarningsPluginFunctionalTest {
 
         assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
-        assertThat(projectDir.resolve("build/custom/index.html")).exists()
+        assertThat(projectDir.resolve("build/custom/index.html")).isFile()
+    }
+
+    @Test
+    fun `location of CSV report can be configured`() {
+        writeEmptySettingsScript()
+        writeBuildScript("""
+            tasks.named<garden.ephemeral.gradle.warnings.WarningsReport>("warningsReport") {
+                reports {
+                    csv.required.set(true)
+                    csv.outputLocation.set(file("${"$"}buildDir/custom.csv"))
+                }
+            }
+        """.trimIndent())
+        writeEmptyClass()
+
+        val result = runTask()
+
+        assertThat(result.task(":warningsReport")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        assertThat(projectDir.resolve("build/custom.csv")).isFile()
     }
 
     private fun writeEmptySettingsScript() = writeFile("settings.gradle.kts", "")

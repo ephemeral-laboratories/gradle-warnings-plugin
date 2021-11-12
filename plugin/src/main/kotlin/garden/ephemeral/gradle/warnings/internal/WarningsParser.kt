@@ -36,4 +36,9 @@ class WarningsParser {
             currentMessageBuilder = null;
         }
     }
+
+    fun createReportModel(): ReportModel {
+        val groups = messages.groupBy { "${it.type}/${it.category}" }
+        return ReportModel(groups, messages.size)
+    }
 }
